@@ -5,7 +5,7 @@ metadata:
     app: train
   name: train-deploy
 spec:
-  replicas: 20
+  replicas: 15
   selector:
     matchLabels:
       app: train
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: cont1
-        image: satya1541/movies:latest
+        image: satya1541/love:latest
         ports:
           - containerPort: 80
 ---
