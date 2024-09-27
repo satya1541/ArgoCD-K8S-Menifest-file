@@ -2,13 +2,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: train
-  name: train-deploy
+    app: netflix
+  name: netflix-app
 spec:
-  replicas: 15
+  replicas: 5
   selector:
     matchLabels:
-      app: train
+      app: netflix
   template:
     metadata:
       labels:
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: cont1
-        image: satya1541/movies:latest
+        image: satya1541/netflix:latest
         ports:
           - containerPort: 80
 ---
