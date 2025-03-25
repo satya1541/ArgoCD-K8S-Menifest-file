@@ -1,3 +1,11 @@
+# Namespace Configuration
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: reddit-app
+
+---
+# Deployment Configuration
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -32,7 +40,9 @@ spec:
               port: 3000  
             initialDelaySeconds: 3
             periodSeconds: 5
+
 ---
+# Service Configuration
 apiVersion: v1
 kind: Service
 metadata:
