@@ -1,35 +1,35 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: netflix-app
+  name: yt-app
   namespace: default 
   labels:
-    app: netflix
+    app: yt
 spec:
   replicas: 10
   selector:
     matchLabels:
-      app: netflix
+      app: yt
   template:
     metadata:
       labels:
-        app: netflix
+        app: yt
     spec:
       containers:
         - name: cont1
-          image: satya1541/cafe_website:latest
+          image: satya1541/youtube-clone-app:latest
           ports:
             - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: netflix-app
+  name: yt-app
   namespace: default 
 spec:
   type: LoadBalancer
   selector:
-    app: netflix
+    app: yt
   ports:
     - port: 80
       targetPort: 80
