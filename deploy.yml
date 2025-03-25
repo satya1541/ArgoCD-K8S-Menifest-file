@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: cont1
-          image: satya1541/hotstar:latest
+          image: satya1541/cafe_website:latest
           ports:
             - containerPort: 80
 ---
