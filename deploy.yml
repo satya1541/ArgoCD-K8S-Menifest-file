@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: cont1
-          image: satya1541/whatsapp_static:latest
+          image: satya1541/spotify-clone:latest
           ports:
             - containerPort: 80
 ---
