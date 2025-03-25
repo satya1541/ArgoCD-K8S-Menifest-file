@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: reddit-app
-  namespace: youtube-clone  # <-- Use a dedicated namespace
+  namespace: reddit-app  # <-- Use a dedicated namespace
   labels:
     app: reddit
 spec:
@@ -37,7 +37,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: reddit-app
-  namespace: youtube-clone
+  namespace: reddit-app
 spec:
   type: LoadBalancer  # <-- Exposes externally
   selector:
