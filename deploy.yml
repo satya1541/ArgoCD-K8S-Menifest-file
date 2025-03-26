@@ -13,6 +13,12 @@ spec:
       labels:
         app: spotify
     spec:
+      opologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
       containers:
         - name: spotify-container
           image: satya1541/spotify-clone:latest
