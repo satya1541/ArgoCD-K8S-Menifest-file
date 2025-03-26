@@ -6,7 +6,12 @@ metadata:
   labels:
     app: netflix
 spec:
-  replicas: 2
+  replicas: 3 
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: netflix
@@ -16,22 +21,40 @@ spec:
         app: netflix
     spec:
       containers:
-        - name: cont1
+        - name: netflix-container
           image: satya1541/netflix_java:latest
           ports:
             - containerPort: 8080 
+          resources:
+            requests:
+              cpu: "500m"  
+              memory: "512Mi" 
+            limits:
+              cpu: "1000m"   
+              memory: "1Gi" 
           livenessProbe:
             httpGet:
-              path: /
+              path: /healthz
               port: 8080 
             initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /
+              path: /ready
               port: 8080 
             initialDelaySeconds: 5
             periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+      nodeSelector:
+        environment: production 
+      tolerations:
+        - key: "node-type"
+          operator: "Equal"
+          value: "production"
+          effect: "NoSchedule"
 
 ---
 
@@ -45,5 +68,29 @@ spec:
   selector:
     app: netflix
   ports:
-    - port: 80        
-      targetPort: 8080  
+    - name: http
+      port: 80        
+      targetPort: 8080
+      protocol: TCP
+
+---
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: netflix-app-hpa
+  namespace: netflix-app
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: netflix-app
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
