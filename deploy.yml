@@ -6,7 +6,7 @@ metadata:
   labels:
     app: netflix
 spec:
-  replicas: 4
+  replicas: 3  
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -27,10 +27,10 @@ spec:
             - containerPort: 8080 
           resources:
             requests:
-              cpu: "500m"  
-              memory: "512Mi" 
+              cpu: "500m"   
+              memory: "512Mi"  
             limits:
-              cpu: "1000m"   
+              cpu: "1000m" 
               memory: "1Gi" 
           livenessProbe:
             httpGet:
@@ -48,8 +48,14 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 2
             failureThreshold: 3
+      nodeSelector:
+        environment: production  
+      tolerations:
+        - key: "node-type"
+          operator: "Equal"
+          value: "production"
+          effect: "NoSchedule"
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -64,9 +70,7 @@ spec:
       port: 80        
       targetPort: 8080
       protocol: TCP
-
 ---
-
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -86,3 +90,9 @@ spec:
         target:
           type: Utilization
           averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 75
