@@ -6,7 +6,7 @@ metadata:
   labels:
     app: netflix
 spec:
-  replicas: 5  
+  replicas: 3  
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -50,10 +50,6 @@ spec:
             failureThreshold: 3
       nodeSelector:
         kubernetes.io/role: worker  # Ensures pods run on worker nodes
-      tolerations:
-        - key: "node-role.kubernetes.io/control-plane"
-          operator: "Exists"
-          effect: "NoSchedule"
 ---
 apiVersion: v1
 kind: Service
