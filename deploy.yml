@@ -13,7 +13,7 @@ metadata:
   labels:
     app: prime
 spec:
-  replicas: 30
+  replicas: 10
   selector:
     matchLabels:
       app: prime
