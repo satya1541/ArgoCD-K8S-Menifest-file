@@ -11,7 +11,7 @@ spec:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 0
+      maxUnavailable: 1  
   selector:
     matchLabels:
       app: spotify
@@ -20,6 +20,7 @@ spec:
       labels:
         app: spotify
     spec:
+      terminationGracePeriodSeconds: 30  
       containers:
         - name: spotify-container
           image: satya1541/spotify-clone:latest
@@ -43,7 +44,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 80
+              port: 8080  # Fixed port mismatch
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 2
@@ -91,5 +92,5 @@ spec:
       resource:
         name: memory
         target:
-          type: AverageValue
-          averageValue: 750Mi 
+          type: Utilization  
+          averageUtilization: 75  
