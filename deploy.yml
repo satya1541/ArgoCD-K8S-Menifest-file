@@ -48,14 +48,6 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 2
             failureThreshold: 3
-      nodeSelector:
-        environment: production 
-      tolerations:
-        - key: "node-type"
-          operator: "Equal"
-          value: "production"
-          effect: "NoSchedule"
-
 ---
 
 apiVersion: v1
