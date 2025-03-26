@@ -44,7 +44,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 8080  # Fixed port mismatch
+              port: 80
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 2
