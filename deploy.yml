@@ -92,4 +92,4 @@ spec:
         name: memory
         target:
           type: AverageValue
-          averageValue: 750Mi  # Uses absolute memory value instead of percentage
+          averageValue: 750Mi 
