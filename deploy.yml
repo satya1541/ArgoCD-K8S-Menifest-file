@@ -13,7 +13,7 @@ spec:
       labels:
         app: spotify
     spec:
-      opologySpreadConstraints:
+      topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
           whenUnsatisfiable: ScheduleAnyway
