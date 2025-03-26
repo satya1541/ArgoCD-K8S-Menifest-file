@@ -3,15 +3,8 @@ kind: Deployment
 metadata:
   name: spotify-app
   namespace: spotify-app
-  labels:
-    app: spotify
 spec:
-  replicas: 3  
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1  
+  replicas: 3
   selector:
     matchLabels:
       app: spotify
@@ -20,39 +13,11 @@ spec:
       labels:
         app: spotify
     spec:
-      terminationGracePeriodSeconds: 30  
       containers:
         - name: spotify-container
           image: satya1541/spotify-clone:latest
           ports:
-            - containerPort: 80 
-          resources:
-            requests:
-              cpu: "500m"   
-              memory: "512Mi"  
-            limits:
-              cpu: "1000m" 
-              memory: "1Gi" 
-          livenessProbe:
-            httpGet:
-              path: /actuator/health
-              port: 80  
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 2
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /actuator/health
-              port: 80  
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            timeoutSeconds: 2
-            failureThreshold: 3
-      tolerations:
-        - key: "node-role.kubernetes.io/control-plane"
-          operator: "Exists"
-          effect: "NoSchedule"
+            - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
@@ -64,10 +29,8 @@ spec:
   selector:
     app: spotify
   ports:
-    - name: http
-      port: 80        
-      targetPort: 80  
-      protocol: TCP
+    - port: 80
+      targetPort: 80
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -76,7 +39,6 @@ metadata:
   namespace: spotify-app
 spec:
   scaleTargetRef:
-    apiVersion: apps/v1
     kind: Deployment
     name: spotify-app
   minReplicas: 3
@@ -88,9 +50,4 @@ spec:
         target:
           type: Utilization
           averageUtilization: 70
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: Utilization  
-          averageUtilization: 75
+
