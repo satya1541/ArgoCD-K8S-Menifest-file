@@ -48,6 +48,12 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 2
             failureThreshold: 3
+      nodeSelector:
+        kubernetes.io/role: worker  # Ensures pods run on worker nodes
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
 ---
 apiVersion: v1
 kind: Service
@@ -87,5 +93,5 @@ spec:
       resource:
         name: memory
         target:
-          type: Utilization
-          averageUtilization: 75
+          type: AverageValue
+          averageValue: 750Mi  # Changed from 'Utilization' to 'AverageValue' for better scaling
