@@ -6,7 +6,7 @@ metadata:
   labels:
     app: netflix
 spec:
-  replicas: 2
+  replicas: 10
   strategy:
     type: RollingUpdate
     rollingUpdate:
