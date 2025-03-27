@@ -9,39 +9,25 @@ metadata:
   name: nginx-config
   namespace: netflix-app
 data:
-  nginx.conf: |
-    user nginx;
-    worker_processes auto;
-    error_log /var/log/nginx/error.log warn;
-    pid /var/run/nginx.pid;
+  default.conf: |
+    server {
+        listen 8080;
+        server_name localhost;
 
-    events {
-        worker_connections 1024;
-    }
+        location / {
+            root /usr/share/nginx/html;
+            index index.html;
+            try_files $uri $uri/ =404;
+        }
 
-    http {
-        include /etc/nginx/mime.types;
-        default_type application/octet-stream;
-        
-        sendfile on;
-        keepalive_timeout 65;
+        location /healthz {
+            access_log off;
+            return 200 "OK";
+        }
 
-        server {
-            listen 8080;
-            server_name netflix.example.com;
-
-            location / {
-                root /usr/share/nginx/html;
-                index index.html;
-            }
-
-            location /healthz {
-                return 200 'healthy';
-            }
-
-            location /ready {
-                return 200 'ready';
-            }
+        location /ready {
+            access_log off;
+            return 200 "OK";
         }
     }
 ---
@@ -50,8 +36,6 @@ kind: Deployment
 metadata:
   name: netflix-app
   namespace: netflix-app
-  labels:
-    app: netflix
 spec:
   replicas: 3
   selector:
@@ -62,52 +46,33 @@ spec:
       labels:
         app: netflix
     spec:
+      securityContext:
+        fsGroup: 101  
       containers:
         - name: netflix-container
           image: satya1541/netflix_static:latest
           ports:
             - containerPort: 8080
-          resources:
-            requests:
-              cpu: "500m"
-              memory: "512Mi"
-            limits:
-              cpu: "1"
-              memory: "1Gi"
-          env:
-            - name: NODE_ENV
-              value: "production"
-            - name: LOG_LEVEL
-              value: "info"
           securityContext:
-            runAsUser: 1000
-            runAsNonRoot: true
+            runAsUser: 0  
+            runAsNonRoot: false
             readOnlyRootFilesystem: false 
-            allowPrivilegeEscalation: false
           volumeMounts:
-            - name: nginx-config
-              mountPath: /etc/nginx/nginx.conf
-              subPath: nginx.conf
+            - name: nginx-run
+              mountPath: /var/run 
             - name: nginx-cache
               mountPath: /var/cache/nginx
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 8080
-            initialDelaySeconds: 15
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /ready
-              port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 5
+            - name: nginx-config-volume
+              mountPath: /etc/nginx/conf.d/
+              readOnly: true
       volumes:
-        - name: nginx-config
-          configMap:
-            name: nginx-config
+        - name: nginx-run
+          emptyDir: {} 
         - name: nginx-cache
           emptyDir: {}
+        - name: nginx-config-volume
+          configMap:
+            name: nginx-config
 ---
 apiVersion: v1
 kind: Service
@@ -115,7 +80,7 @@ metadata:
   name: netflix-app
   namespace: netflix-app
 spec:
-  type: LoadBalancer 
+  type: LoadBalancer  
   selector:
     app: netflix
   ports:
@@ -208,4 +173,4 @@ spec:
         - protocol: TCP
           port: 443 
         - protocol: UDP  
-          port: 53
+          port: 53       
