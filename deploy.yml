@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spotify-app
-  namespace: spotify-app
+  name: love-app
+  namespace: random-app
   labels:
-    app: spotify
+    app: love
 spec:
   replicas: 5
   selector:
     matchLabels:
-      app: spotify
+      app: love
   template:
     metadata:
       labels:
-        app: spotify
+        app: love
     spec:
       topologySpreadConstraints:
         - maxSkew: 1
@@ -21,10 +21,10 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              app: spotify
+              app: love
       containers:
-        - name: spotify-container
-          image: satya1541/spotify-clone:latest
+        - name: love-container
+          image: satya1541/love:latest
           ports:
             - containerPort: 80
           resources:
@@ -55,12 +55,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: spotify-app
-  namespace: spotify-app
+  name: love-app
+  namespace: love-app
 spec:
   type: LoadBalancer
   selector:
-    app: spotify
+    app: love
   ports:
     - port: 80
       targetPort: 80
@@ -68,12 +68,12 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: spotify-app-hpa
-  namespace: spotify-app
+  name: love-app-hpa
+  namespace: love-app
 spec:
   scaleTargetRef:
     kind: Deployment
-    name: spotify-app
+    name: love-app
     apiVersion: apps/v1
   minReplicas: 3
   maxReplicas: 10
@@ -94,10 +94,10 @@ spec:
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: spotify-app-pdb
-  namespace: spotify-app
+  name: love-app-pdb
+  namespace: love-app
 spec:
   minAvailable: 2
   selector:
     matchLabels:
-      app: spotify 
+      app: love 
