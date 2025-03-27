@@ -24,6 +24,16 @@ data:
                 root /usr/share/nginx/html;
                 index index.html;
             }
+
+            location /healthz {
+                return 200 'OK';
+                access_log off;
+            }
+
+            location /ready {
+                return 200 'OK';
+                access_log off;
+            }
         }
     }
 ---
@@ -55,7 +65,7 @@ spec:
         - name: netflix-container
           image: satya1541/netflix_static:latest
           ports:
-            - containerPort: 8080
+            - containerPort: 8080  
           resources:
             requests:
               cpu: "500m"
@@ -74,14 +84,13 @@ spec:
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
           volumeMounts:
-            - name: nginx-config
-              mountPath: /etc/nginx/nginx.conf
+            - mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
-            - name: nginx-cache
-              mountPath: /var/cache/nginx
-            - name: tmp
-              mountPath: /tmp  # Writable location for PID file
-          command: [ "nginx", "-c", "/etc/nginx/nginx.conf", "-g", "daemon off;" ]
+              name: nginx-config
+            - mountPath: /var/cache/nginx
+              name: nginx-cache
+            - mountPath: /tmp
+              name: tmpfs
           livenessProbe:
             httpGet:
               path: /healthz
@@ -100,8 +109,8 @@ spec:
             name: nginx-config
         - name: nginx-cache
           emptyDir: {}
-        - name: tmp
-          emptyDir: {}  # Writable volume for PID file
+        - name: tmpfs
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -114,7 +123,7 @@ spec:
     app: netflix
   ports:
     - port: 80
-      targetPort: 8080
+      targetPort: 8080  # Updated to match the Nginx config
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -202,4 +211,4 @@ spec:
         - protocol: TCP
           port: 443 
         - protocol: UDP  
-          port: 53
+          port: 53  
