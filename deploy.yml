@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spotify-app
-  namespace: spotify-app
+  name: netflix-app
+  namespace: netflix-app
   labels:
-    app: spotify
+    app: netflix
 spec:
   replicas: 6
   selector:
     matchLabels:
-      app: spotify
+      app: netflix
   template:
     metadata:
       labels:
-        app: spotify
+        app: netflix
     spec:
       topologySpreadConstraints:
         - maxSkew: 1
@@ -21,10 +21,10 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              app: spotify
+              app: netflix
       containers:
-        - name: spotify-container
-          image: satya1541/spotify-clone:latest
+        - name: netflix-container
+          image: satya1541/netflix_static:latest
           ports:
             - containerPort: 80
           resources:
@@ -55,12 +55,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: spotify-app
-  namespace: spotify-app
+  name: netflix-app
+  namespace: netflix-app
 spec:
   type: LoadBalancer
   selector:
-    app: spotify
+    app: netflix
   ports:
     - port: 80
       targetPort: 80
@@ -68,12 +68,12 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: spotify-app-hpa
-  namespace: spotify-app
+  name: netflix-app-hpa
+  namespace: netflix-app
 spec:
   scaleTargetRef:
     kind: Deployment
-    name: spotify-app
+    name: netflix-app
     apiVersion: apps/v1
   minReplicas: 3
   maxReplicas: 10
@@ -94,10 +94,10 @@ spec:
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: spotify-app-pdb
-  namespace: spotify-app
+  name: netflix-app-pdb
+  namespace: netflix-app
 spec:
   minAvailable: 2
   selector:
     matchLabels:
-      app: spotify
+      app: netflix
