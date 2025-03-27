@@ -24,7 +24,7 @@ spec:
               app: random
       containers:
         - name: random-container
-          image: satya1541/random:latest
+          image: satya1541/love:latest
           ports:
             - containerPort: 80
           resources:
