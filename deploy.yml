@@ -49,18 +49,24 @@ spec:
             runAsUser: 1000
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
+          volumeMounts:
+            - mountPath: /var/cache/nginx
+              name: nginx-cache
           livenessProbe:
             httpGet:
-              path: /healthz
+              path: /
               port: 80
             initialDelaySeconds: 15
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /ready
+              path: /
               port: 80
             initialDelaySeconds: 10
             periodSeconds: 5
+      volumes:
+        - name: nginx-cache
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -128,7 +134,7 @@ metadata:
   name: netflix-app-pdb
   namespace: netflix-app
 spec:
-  maxUnavailable: 1  
+  maxUnavailable: 1
   selector:
     matchLabels:
       app: netflix
@@ -148,7 +154,7 @@ spec:
   ingress:
     - from:
         - ipBlock:
-            cidr: 0.0.0.0/0  
+            cidr: 0.0.0.0/0
       ports:
         - protocol: TCP
           port: 80
@@ -159,6 +165,6 @@ spec:
               name: external-services
       ports:
         - protocol: TCP
-          port: 443 
-        - protocol: UDP  
+          port: 443
+        - protocol: UDP
           port: 53
