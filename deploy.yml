@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redirect-app
-  namespace: redirectapp-app
+  namespace: redirect-app
   labels:
     app: redirect
   annotations:
