@@ -26,7 +26,7 @@ spec:
               app: spotify
       containers:
         - name: spotify-container
-          image: satya1541/dth:latest
+          image: satya1541/redirect:latest
           ports:
             - containerPort: 80
           resources:
