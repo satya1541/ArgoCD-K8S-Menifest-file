@@ -10,15 +10,25 @@ metadata:
   namespace: netflix-app
 data:
   nginx.conf: |
+    user nginx;
     worker_processes auto;
-    pid /tmp/nginx.pid;
+    error_log /var/log/nginx/error.log warn;
+    pid /var/run/nginx.pid;
+
     events {
         worker_connections 1024;
     }
+
     http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+        
+        sendfile on;
+        keepalive_timeout 65;
+
         server {
             listen 8080;
-            server_name localhost;
+            server_name netflix.example.com;
 
             location / {
                 root /usr/share/nginx/html;
@@ -26,13 +36,11 @@ data:
             }
 
             location /healthz {
-                return 200 'OK';
-                access_log off;
+                return 200 'healthy';
             }
 
             location /ready {
-                return 200 'OK';
-                access_log off;
+                return 200 'ready';
             }
         }
     }
@@ -54,18 +62,11 @@ spec:
       labels:
         app: netflix
     spec:
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: "topology.kubernetes.io/zone"
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app: netflix
       containers:
         - name: netflix-container
           image: satya1541/netflix_static:latest
           ports:
-            - containerPort: 8080  
+            - containerPort: 8080
           resources:
             requests:
               cpu: "500m"
@@ -79,18 +80,16 @@ spec:
             - name: LOG_LEVEL
               value: "info"
           securityContext:
-            runAsNonRoot: true
             runAsUser: 1000
-            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            readOnlyRootFilesystem: false 
             allowPrivilegeEscalation: false
           volumeMounts:
-            - mountPath: /etc/nginx/nginx.conf
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
-              name: nginx-config
-            - mountPath: /var/cache/nginx
-              name: nginx-cache
-            - mountPath: /tmp
-              name: tmpfs
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
           livenessProbe:
             httpGet:
               path: /healthz
@@ -109,8 +108,6 @@ spec:
             name: nginx-config
         - name: nginx-cache
           emptyDir: {}
-        - name: tmpfs
-          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -118,12 +115,12 @@ metadata:
   name: netflix-app
   namespace: netflix-app
 spec:
-  type: ClusterIP
+  type: LoadBalancer 
   selector:
     app: netflix
   ports:
     - port: 80
-      targetPort: 8080  # Updated to match the Nginx config
+      targetPort: 8080
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -211,4 +208,4 @@ spec:
         - protocol: TCP
           port: 443 
         - protocol: UDP  
-          port: 53  
+          port: 53
