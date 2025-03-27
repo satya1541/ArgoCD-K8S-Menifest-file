@@ -1,8 +1,3 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: netflix-app
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,25 +15,11 @@ spec:
       labels:
         app: netflix
     spec:
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: "topology.kubernetes.io/zone"
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app: netflix
       containers:
         - name: netflix-container
           image: satya1541/netflix_static:latest
           ports:
-            - containerPort: 8080  
-          resources:
-            requests:
-              cpu: "500m"
-              memory: "512Mi"
-            limits:
-              cpu: "1"
-              memory: "1Gi"
+            - containerPort: 8080 
           env:
             - name: NODE_ENV
               value: "production"
@@ -54,14 +35,14 @@ spec:
               name: nginx-cache
           livenessProbe:
             httpGet:
-              path: /
-              port: 8080
+              path: /healthz
+              port: 8080 
             initialDelaySeconds: 15
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /
-              port: 8080
+              path: /ready
+              port: 8080 
             initialDelaySeconds: 10
             periodSeconds: 5
       volumes:
@@ -101,70 +82,3 @@ spec:
                 name: netflix-app
                 port:
                   number: 80
----
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: netflix-app-hpa
-  namespace: netflix-app
-spec:
-  scaleTargetRef:
-    kind: Deployment
-    name: netflix-app
-    apiVersion: apps/v1
-  minReplicas: 3
-  maxReplicas: 10
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 60
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: Utilization
-          averageUtilization: 75
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: netflix-app-pdb
-  namespace: netflix-app
-spec:
-  maxUnavailable: 1  
-  selector:
-    matchLabels:
-      app: netflix
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: netflix-network-policy
-  namespace: netflix-app
-spec:
-  podSelector:
-    matchLabels:
-      app: netflix
-  policyTypes:
-    - Ingress
-    - Egress
-  ingress:
-    - from:
-        - ipBlock:
-            cidr: 0.0.0.0/0  
-      ports:
-        - protocol: TCP
-          port: 80
-  egress:
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              name: external-services
-      ports:
-        - protocol: TCP
-          port: 443
-        - protocol: UDP
-          port: 53  
