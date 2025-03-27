@@ -11,6 +11,7 @@ metadata:
 data:
   nginx.conf: |
     worker_processes auto;
+    pid /tmp/nginx.pid;
     events {
         worker_connections 1024;
     }
@@ -78,6 +79,8 @@ spec:
               subPath: nginx.conf
             - name: nginx-cache
               mountPath: /var/cache/nginx
+            - name: tmp
+              mountPath: /tmp  # Writable location for PID file
           command: [ "nginx", "-c", "/etc/nginx/nginx.conf", "-g", "daemon off;" ]
           livenessProbe:
             httpGet:
@@ -97,6 +100,8 @@ spec:
             name: nginx-config
         - name: nginx-cache
           emptyDir: {}
+        - name: tmp
+          emptyDir: {}  # Writable volume for PID file
 ---
 apiVersion: v1
 kind: Service
