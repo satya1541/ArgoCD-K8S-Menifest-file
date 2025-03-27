@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spotify-app
-  namespace: spotify-app
+  name: redirect-app
+  namespace: redirectapp-app
   labels:
-    app: spotify
+    app: redirect
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  replicas: 5
+  replicas: 3
   selector:
     matchLabels:
-      app: spotify
+      app: redirect
   template:
     metadata:
       labels:
-        app: spotify
+        app: redirect
     spec:
       topologySpreadConstraints:
         - maxSkew: 1
@@ -23,9 +23,9 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              app: spotify
+              app: redirect
       containers:
-        - name: spotify-container
+        - name: redirect-container
           image: satya1541/redirect:latest
           ports:
             - containerPort: 80
@@ -57,14 +57,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: spotify-app
-  namespace: spotify-app
+  name: redirect-app
+  namespace: redirect-app
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
   type: LoadBalancer
   selector:
-    app: spotify
+    app: redirect
   ports:
     - port: 80
       targetPort: 80
@@ -72,14 +72,14 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: spotify-app-hpa
-  namespace: spotify-app
+  name: redirect-app-hpa
+  namespace: redirect-app
   annotations:
     argocd.argoproj.io/sync-wave: "3"
 spec:
   scaleTargetRef:
     kind: Deployment
-    name: spotify-app
+    name: redirect-app
     apiVersion: apps/v1
   minReplicas: 3
   maxReplicas: 10
@@ -100,12 +100,12 @@ spec:
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: spotify-app-pdb
-  namespace: spotify-app
+  name: redirect-app-pdb
+  namespace: redirect-app
   annotations:
     argocd.argoproj.io/sync-wave: "4"
 spec:
   minAvailable: 2
   selector:
     matchLabels:
-      app: spotify
+      app: redirect
