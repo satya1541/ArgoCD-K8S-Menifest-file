@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: love-app
+  name: random-app
   namespace: random-app
   labels:
-    app: love
+    app: random
 spec:
   replicas: 7
   selector:
     matchLabels:
-      app: love
+      app: random
   template:
     metadata:
       labels:
-        app: love
+        app: random
     spec:
       topologySpreadConstraints:
         - maxSkew: 1
@@ -21,10 +21,10 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              app: love
+              app: random
       containers:
-        - name: love-container
-          image: satya1541/love:latest
+        - name: random-container
+          image: satya1541/random:latest
           ports:
             - containerPort: 80
           resources:
@@ -55,12 +55,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: love-app
-  namespace: love-app
+  name: random-app
+  namespace: random-app
 spec:
   type: LoadBalancer
   selector:
-    app: love
+    app: random
   ports:
     - port: 80
       targetPort: 80
@@ -68,12 +68,12 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: love-app-hpa
-  namespace: love-app
+  name: random-app-hpa
+  namespace: random-app
 spec:
   scaleTargetRef:
     kind: Deployment
-    name: love-app
+    name: random-app
     apiVersion: apps/v1
   minReplicas: 3
   maxReplicas: 10
@@ -94,10 +94,10 @@ spec:
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: love-app-pdb
-  namespace: love-app
+  name: random-app-pdb
+  namespace: random-app
 spec:
   minAvailable: 2
   selector:
     matchLabels:
-      app: love 
+      app: random 
