@@ -31,7 +31,7 @@ spec:
         - name: netflix-container
           image: satya1541/netflix_static:latest
           ports:
-            - containerPort: 80
+            - containerPort: 8080  
           resources:
             requests:
               cpu: "500m"
@@ -55,13 +55,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8080
             initialDelaySeconds: 15
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8080
             initialDelaySeconds: 10
             periodSeconds: 5
       volumes:
@@ -78,8 +78,8 @@ spec:
   selector:
     app: netflix
   ports:
-    - port: 80
-      targetPort: 80
+    - port: 80       
+      targetPort: 8080  
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -134,7 +134,7 @@ metadata:
   name: netflix-app-pdb
   namespace: netflix-app
 spec:
-  maxUnavailable: 1
+  maxUnavailable: 1  
   selector:
     matchLabels:
       app: netflix
@@ -154,7 +154,7 @@ spec:
   ingress:
     - from:
         - ipBlock:
-            cidr: 0.0.0.0/0
+            cidr: 0.0.0.0/0  
       ports:
         - protocol: TCP
           port: 80
@@ -167,4 +167,4 @@ spec:
         - protocol: TCP
           port: 443
         - protocol: UDP
-          port: 53
+          port: 53  
