@@ -10,13 +10,19 @@ metadata:
   namespace: netflix-app
 data:
   nginx.conf: |
-    server {
-        listen 8080;
-        server_name localhost;
+    worker_processes auto;
+    events {
+        worker_connections 1024;
+    }
+    http {
+        server {
+            listen 8080;
+            server_name localhost;
 
-        location / {
-            root /usr/share/nginx/html;
-            index index.html;
+            location / {
+                root /usr/share/nginx/html;
+                index index.html;
+            }
         }
     }
 ---
@@ -48,7 +54,14 @@ spec:
         - name: netflix-container
           image: satya1541/netflix_static:latest
           ports:
-            - containerPort: 8080  # ✅ Change from 80 to 8080
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
           env:
             - name: NODE_ENV
               value: "production"
@@ -60,12 +73,12 @@ spec:
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
           volumeMounts:
-            - mountPath: /var/cache/nginx
-              name: nginx-cache
             - name: nginx-config
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
-          command: [ "nginx", "-g", "daemon off;" ]  # ✅ Ensures foreground execution
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+          command: [ "nginx", "-c", "/etc/nginx/nginx.conf", "-g", "daemon off;" ]
           livenessProbe:
             httpGet:
               path: /healthz
@@ -79,11 +92,11 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
       volumes:
-        - name: nginx-cache
-          emptyDir: {}
         - name: nginx-config
           configMap:
             name: nginx-config
+        - name: nginx-cache
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -96,7 +109,7 @@ spec:
     app: netflix
   ports:
     - port: 80
-      targetPort: 8080  # ✅ Routes traffic to container’s 8080
+      targetPort: 8080
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -151,7 +164,7 @@ metadata:
   name: netflix-app-pdb
   namespace: netflix-app
 spec:
-  maxUnavailable: 1
+  maxUnavailable: 1  
   selector:
     matchLabels:
       app: netflix
@@ -171,7 +184,7 @@ spec:
   ingress:
     - from:
         - ipBlock:
-            cidr: 0.0.0.0/0
+            cidr: 0.0.0.0/0  
       ports:
         - protocol: TCP
           port: 80
@@ -182,6 +195,6 @@ spec:
               name: external-services
       ports:
         - protocol: TCP
-          port: 443
-        - protocol: UDP
+          port: 443 
+        - protocol: UDP  
           port: 53
