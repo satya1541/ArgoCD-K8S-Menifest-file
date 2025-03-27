@@ -3,8 +3,10 @@ kind: Deployment
 metadata:
   name: spotify-app
   namespace: spotify-app
+  labels:
+    app: spotify
 spec:
-  replicas: 10
+  replicas: 5
   selector:
     matchLabels:
       app: spotify
@@ -19,11 +21,36 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
+              app: spotify
       containers:
         - name: spotify-container
           image: satya1541/spotify-clone:latest
           ports:
             - containerPort: 80
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: LOG_LEVEL
+              value: "info"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 3
 ---
 apiVersion: v1
 kind: Service
@@ -47,6 +74,7 @@ spec:
   scaleTargetRef:
     kind: Deployment
     name: spotify-app
+    apiVersion: apps/v1
   minReplicas: 3
   maxReplicas: 10
   metrics:
@@ -56,4 +84,20 @@ spec:
         target:
           type: Utilization
           averageUtilization: 70
-
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: spotify-app-pdb
+  namespace: spotify-app
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: spotify
